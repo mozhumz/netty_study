@@ -1,0 +1,29 @@
+plugins {
+    id 'java'
+}
+
+group 'com.hyj'
+version '1.0'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+//    mavenCentral()
+//    maven {
+//        url 'http://maven.aliyun.com/nexus/content/groups/public/'
+//    }
+}
+
+dependencies {
+
+//    compile group: 'com.github.mozhumz', name: 'common_util', version: '1.0.8'
+
+//    compile group: 'io.netty', name: 'netty-all', version: '4.1.42.Final'
+//    compile(
+//            'com.github.mozhumz:common_util: 1.0.8'
+//    )
+    compile(
+            'io.netty:netty-all:4.1.42.Final'
+    )
+}
