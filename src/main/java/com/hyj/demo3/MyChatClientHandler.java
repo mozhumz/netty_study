@@ -9,4 +9,5 @@ public class MyChatClientHandler extends SimpleChannelInboundHandler<String> {
         //接收到的服务器消息
         System.out.println("接收到的服务器消息"+msg);
     }
+
 }

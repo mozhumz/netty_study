@@ -94,8 +94,12 @@ public class TestHttpServerHandler extends SimpleChannelInboundHandler<HttpObjec
         super.channelInactive(ctx);
     }
 
+    /**
+     * 7
+     * @param ctx
+     */
     @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+    public void handlerRemoved(ChannelHandlerContext ctx) {
         System.out.println("handlerRemoved");
     }
 

@@ -6,6 +6,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
+/**
+ * netty实现客户端和服务端通信
+ */
 public class MyServer {
     public static void main(String[] args) throws Exception{
         EventLoopGroup bossGroup=new NioEventLoopGroup();
