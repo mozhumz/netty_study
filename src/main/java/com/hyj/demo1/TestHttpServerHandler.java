@@ -37,7 +37,7 @@ public class TestHttpServerHandler extends SimpleChannelInboundHandler<HttpObjec
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN);
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH,content.readableBytes());
 
-
+            //信息返回给客户端
             ctx.writeAndFlush(response);
             ctx.channel().close();
 
@@ -80,6 +80,9 @@ public class TestHttpServerHandler extends SimpleChannelInboundHandler<HttpObjec
         super.channelActive(ctx);
     }
 
+
+
+
     /**
      * 5
      * @param ctx
@@ -89,6 +92,11 @@ public class TestHttpServerHandler extends SimpleChannelInboundHandler<HttpObjec
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         System.out.println("channel Inactive");
         super.channelInactive(ctx);
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        System.out.println("handlerRemoved");
     }
 
     /**
@@ -101,4 +109,6 @@ public class TestHttpServerHandler extends SimpleChannelInboundHandler<HttpObjec
         System.out.println("channel Unregistered");
         super.channelUnregistered(ctx);
     }
+
+
 }
