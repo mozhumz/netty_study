@@ -13,9 +13,12 @@ public class WebSocketChannelInitializer extends ChannelInitializer<SocketChanne
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline pipeline=ch.pipeline();
         pipeline.addLast(new HttpServerCodec());
+        //块写处理器
         pipeline.addLast(new ChunkedWriteHandler());
+        //聚合处理器 将http msg聚合成一个完整的request或response
         pipeline.addLast(new HttpObjectAggregator(8192));
-        pipeline.addLast(new WebSocketServerProtocolHandler("/ws"));
+        //websocket处理器
+        pipeline.addLast(new WebSocketServerProtocolHandler("/wsTest"));
 
         pipeline.addLast(new TextWebSocketFrameHandler());
     }

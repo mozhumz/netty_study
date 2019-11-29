@@ -20,6 +20,7 @@ public class TextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextW
 
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        //asLongText 全局唯一的ChannelId
         System.out.println("handlerRemoved:"+ctx.channel().id().asLongText());
     }
 
