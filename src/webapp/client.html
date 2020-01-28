@@ -8,7 +8,7 @@
 <script>
     var socket;
     if (window.WebSocket) {
-        socket = new WebSocket('ws:mozhu.iok.la/wsTest');
+        socket = new WebSocket('ws:localhost:8899/wsTest');
         socket.onmessage = function (ev) {
             var resT = document.getElementById('resTxt');
             resT.value = resT.value + '\n' + ev.data;
@@ -26,7 +26,7 @@
     }
 
     function sendMsg(msg) {
-        var val=document.getElementById('msg').value;
+        var val=document.getElementById('msg1').value;
         console.log(val);
         console.log(msg);
         if(!window.WebSocket){
@@ -41,8 +41,8 @@
     }
 </script>
 <form onsubmit="return false;">
-    <textarea id="msg" name="msg" style="width:400px;height: 200px"></textarea>
-    <input type="button" value="发送数据" onclick="sendMsg(this.form.msg.value)"/>
+    <textarea id="msg1" name="msg" style="width:400px;height: 200px"></textarea>
+    <input type="button" value="发送数据" onclick="sendMsg(this.form.msg[0].value)"/>
     <h3>服务端输出</h3>
     <textarea id="resTxt" name="msg" style="width:400px;height: 200px"></textarea>
     <input type="button" value="清空内容" onclick="javascript: document.getElementById('resTxt').value=''"

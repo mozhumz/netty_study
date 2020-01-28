@@ -17,10 +17,15 @@ targetCompatibility = 1.8
 //    groovyOptions.encoding = "MacRoman"
 //}
 repositories {
+//    jcenter() {
+//        url "http://jcenter.bintray.com/"
+//    }
 //    mavenCentral()
     maven {
         url 'http://maven.aliyun.com/nexus/content/groups/public/'
     }
+//    mavenLocal()
+//    maven { url 'http://repo.spring.io/plugins-release' }
 }
 
 dependencies {
@@ -32,6 +37,11 @@ dependencies {
 //            'com.github.mozhumz:common_util: 1.0.8'
 //    )
     compile(
-            'io.netty:netty-all:4.1.42.Final'
+            'io.netty:netty-all:4.1.42.Final',
+            // https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java
+            'com.google.protobuf:protobuf-java:3.11.0',
+            'com.google.protobuf:protobuf-java-util:3.11.0'
+//            group: 'com.github.mozhumz', name: 'common_util', version: '1.0.8'
+
     )
 }
