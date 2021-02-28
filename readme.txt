@@ -1,0 +1,19 @@
+Netty程序的一般结构和大致用法:
+一个Netty程序开始于Bootstrap类，Bootstrap类是Netty提供的一个可以通过简单配置来设置或"引导"程序的一个很重要的类。
+Netty中设计了 Handlers来处理特定的"event"和设置Netty中的事件，从而来处理多个协议和数据。事件可以描述成一个非常通用的方法，
+因为你可以自定义一个
+handler,用来将Object转成byte[]或将byte[]转成Object；也可以定义个handler处理抛出的异常。
+ 你会经常编写一个实现ChannelInboundHandler的类，ChannelInboundHandler是用来接收消息，当有消息过来时，你可以决定如何处理。当程序
+需要返回消息时可以在ChannelInboundHandler里write/flush数据。可以认为应用程序的业务逻辑都是在ChannelInboundHandler中来处理的，业务罗的
+生命周期在ChannelInboundHandler中。
+ Netty连接客户端端或绑定服务器需要知道如何发送或接收消息，这是通过不同类型的handlers来做的，多个Handlers是怎么配置的？
+ Netty提供了 ChannelInitializer类用来配置Handlers。ChannelInitializer是通过ChannelPipeline来添加ChannelHandler的，
+ 如发送和接收消息，这些Handlers将确定
+发的是什么消息。ChannelInitializer自身也是一个ChannelHandler，在添加完其他的handlers之后会自动从ChannelPipeline中删除自己。
+ 所有的Netty程序都是基于ChannelPipeline。ChannelPipeline和EventLoop和EventLoopGroup密切相关，因为它们三个都和事件处理相关，所以
+这就是为什么它们处理IO的工作由EventLoop管理的原因。
+ Netty中所有的IO操作都是异步执行的，例如你连接一个主机默认是异步完成的；写入/发送消息也是同样是异步。也就是说操作不会直接执行，
+  而是会等一会执行，因为你不知道返回的操作结果是成功还是失败，但是需要有检查是否成功的方法或者是注册监听来通知；
+  Netty使用Futures和 ChannelFutures来达到这种目的。Future注册一个监听，当操作成功或失败时会通知。
+  ChannelFuture封装的是一个操作的相关信息，操作被执行时会
+立刻返回ChannelFuture

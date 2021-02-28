@@ -19,7 +19,7 @@ public class WebSocketChannelInitializer extends ChannelInitializer<SocketChanne
         pipeline.addLast(new HttpObjectAggregator(8192));
         //websocket处理器
         pipeline.addLast(new WebSocketServerProtocolHandler("/wsTest"));
-
+        //最后一个handler（ChannelInboundHandler）用于处理接收到的消息
         pipeline.addLast(new TextWebSocketFrameHandler());
     }
 }

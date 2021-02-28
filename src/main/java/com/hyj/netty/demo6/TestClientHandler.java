@@ -11,6 +11,7 @@ public class TestClientHandler extends SimpleChannelInboundHandler<MyDataInfo.Pe
 
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
+		//发送消息到服务端
 		MyDataInfo.Person person=MyDataInfo.Person.newBuilder().setAddress("北京").setName("张三").setAge(55).build();
 
 		ctx.writeAndFlush(person);
