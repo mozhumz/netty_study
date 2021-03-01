@@ -9,6 +9,7 @@ import io.netty.handler.logging.LoggingHandler;
 
 public class TestServer {
 	public static void main(String[] args) throws Exception{
+		System.out.println("server start...");
 		EventLoopGroup bossGroup=new NioEventLoopGroup();
 		EventLoopGroup wokerGroup=new NioEventLoopGroup();
 
