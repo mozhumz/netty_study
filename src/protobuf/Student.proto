@@ -1,0 +1,41 @@
+syntax="proto2";
+
+package com.hyj.protobuf;
+option optimize_for=SPEED;
+option java_package="com.hyj.netty.demo6";
+option java_outer_classname="MyDataInfo";
+
+message MyMessage{
+     enum DataType{
+        cat=1;
+        person=2;
+        dog=3;
+    }
+    required DataType dataType=1;
+     oneof data{
+         Person p=2;
+         Dog d=3;
+         Cat c=4;
+     }
+}
+
+message Person{
+    required string name=1;
+    optional int32 age =2;
+    optional string address =3;
+
+}
+
+message Dog{
+    required string name=1;
+    optional int32 age =2;
+    optional string address =3;
+
+}
+
+message Cat{
+    required string name=1;
+    optional int32 age =2;
+    optional string address =3;
+
+}
