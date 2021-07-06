@@ -12,11 +12,13 @@ public class MyThriftClient {
     public static void main(String[] args)  {
         TTransport transport=null;
         try {
-            transport=new TFramedTransport(new TSocket("localhost",8899),
+            TSocket tSocket = new TSocket("127.0.0.1", 9999);
+            transport=new TFramedTransport(tSocket,
                     600);
             TProtocol protocol=new TCompactProtocol(transport);
-            transport.open();
             MyPersonService.Client client=new MyPersonService.Client(protocol);
+//            transport.open();
+            tSocket.open();
             Person person=client.getPersonByName("张三");
             System.out.println(new JSONObject(person));
             Person person2=new Person();
