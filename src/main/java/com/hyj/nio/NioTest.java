@@ -61,6 +61,11 @@ public class NioTest {
         FileInputStream fileInputStream=new FileInputStream("test2.txt");
         FileChannel channel = fileInputStream.getChannel();
         ByteBuffer byteBuffer=ByteBuffer.allocate(20);
+        //我们的byteBuffer已经存满了，会返回0
+        //返回-1是因为客户端主动关闭了channel，注意是主动关闭而不是异常关闭。这时候服务器的与之关联的SelectionKey
+        // 会不断的触发SelectionKey.OP_KEY事件，但是当我们去读取数据的时候会一直返回-1(并不会抛出异常)，
+        // 所以说一般如果出现返回值为-1的情况下，我们需要在服务器端关闭与客户端相连接的channel，
+        // 其会自动的从Selector中取消注册，就不会一直重复的触发该SelectionKey的OP_KEY事件
         //从channel读入buffer
         channel.read(byteBuffer);
 
@@ -68,5 +73,12 @@ public class NioTest {
         while (byteBuffer.hasRemaining()){
             System.out.println((char)byteBuffer.get());
         }
+    }
+
+    @Test
+    public void test4(){
+        ByteBuffer byteBuffer=ByteBuffer.allocate(10);
+        ByteBuffer readOnlyBuffer = byteBuffer.asReadOnlyBuffer();
+        System.out.println(readOnlyBuffer.getClass());
     }
 }
