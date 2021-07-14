@@ -1,22 +1,21 @@
 package com.hyj.nio;
 
-import com.sun.xml.internal.ws.api.Component;
 import org.junit.Test;
 
 import java.io.*;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.IntBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class NioTest {
     /**
@@ -127,9 +126,6 @@ public class NioTest {
         randomAccessFile.close();
     }
 
-    public static void main(String[] args) throws Exception {
-
-    }
 
     LinkedList<SocketChannel> list = new LinkedList<>();
 
@@ -257,8 +253,22 @@ public class NioTest {
 
     }
 
+    /**
+     * nio socket服务-群聊：发送数据到所有客户端
+     * @throws Exception
+     */
     @Test
     public void test9() throws Exception {
+        try {
+
+            testServer();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    private void testServer() throws IOException {
         ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
         serverSocketChannel.configureBlocking(false);
         ServerSocket serverSocket = serverSocketChannel.socket();
@@ -285,38 +295,119 @@ public class NioTest {
                     System.out.println("client:" + uuid + "," + client);
 
                 } else if (selectionKey.isReadable()) {
-                    //读取客户端数据 并发送给所有客户端
-                    SocketChannel client = (SocketChannel) selectionKey.channel();
-                    System.out.println("read:" + client);
-                    ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
-                    //将数据读入buffer
-                    int count = client.read(byteBuffer);
-                    System.out.println("count:"+count);
+                    try {
 
-                    //从buffer读出数据
-                    byteBuffer.flip();
-                    Charset charset = Charset.forName("utf-8");
-                    String msg=String.valueOf(charset.decode(byteBuffer).array());
-                    System.out.println("msg:"+msg);
-                    String sendKey="";
-                    for (Map.Entry<String, SocketChannel> entry : clientMap.entrySet()) {
-                        if(client==entry.getValue()){
-                            sendKey=entry.getKey();
-                        }
-                    }
-
-                    if(count>0){
-                        byteBuffer.clear();
-                        byteBuffer.put((sendKey+":"+msg).getBytes());
-                        for (SocketChannel socketChannel : clientMap.values()) {
-                            byteBuffer.flip();
-                            socketChannel.write(byteBuffer);
-                        }
+                        readMsg(clientMap, selectionKey);
+                    }catch (Exception e){
+                        selectionKey.cancel();
+                        e.printStackTrace();
                     }
 
                 }
             }
             //清除掉已经处理的事件
+            selectionKeys.clear();
+        }
+    }
+
+    private void readMsg(Map<String, SocketChannel> clientMap, SelectionKey selectionKey) throws IOException {
+        //读取客户端数据 并发送给所有客户端
+        SocketChannel client = (SocketChannel) selectionKey.channel();
+        System.out.println("read:" + client);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+        //将数据读入buffer
+        int count = client.read(byteBuffer);
+        System.out.println("count:"+count);
+
+        //从buffer读出数据
+        byteBuffer.flip();
+        Charset charset = Charset.forName("utf-8");
+        String msg=String.valueOf(charset.decode(byteBuffer).array());
+        System.out.println("msg:"+msg);
+        String sendKey="";
+        for (Map.Entry<String, SocketChannel> entry : clientMap.entrySet()) {
+            if(client==entry.getValue()){
+                sendKey=entry.getKey();
+            }
+        }
+
+        if(count>0){
+            byteBuffer.clear();
+            byteBuffer.put((sendKey+":"+msg).getBytes());
+            for (SocketChannel socketChannel : clientMap.values()) {
+                byteBuffer.flip();
+                socketChannel.write(byteBuffer);
+            }
+        }
+    }
+
+    public static void main(String[] args) throws Exception{
+        testClient();
+    }
+
+    /**
+     * nio socket客户端
+     * @throws Exception
+     */
+    public static void testClient() throws Exception{
+        SocketChannel socketChannel = SocketChannel.open();
+        //非阻塞
+        socketChannel.configureBlocking(false);
+        //与服务器建立连接
+        socketChannel.connect(new InetSocketAddress("127.0.0.1",8899));
+        //注册连接事件到选择器
+        Selector selector = Selector.open();
+        socketChannel.register(selector,SelectionKey.OP_CONNECT);
+
+        while (true){
+            selector.select();
+            Set<SelectionKey> selectionKeys = selector.selectedKeys();
+            for (SelectionKey selectionKey : selectionKeys) {
+                if(selectionKey.isConnectable()){
+                    SocketChannel client= (SocketChannel) selectionKey.channel();
+                    //如果连接挂起
+                    if(client.isConnectionPending()){
+                        //完成建立连接
+                        client.finishConnect();
+                        //读取控制台的用户输入数据 发送到服务器
+                        ExecutorService pool = Executors.newSingleThreadExecutor();
+                        ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+                        byteBuffer.put(("连接成功:"+ LocalDateTime.now()).getBytes());
+                        byteBuffer.flip();
+                        client.write(byteBuffer);
+                        pool.submit(()->{
+                            while (true){
+                                try {
+
+                                    InputStreamReader inputStreamReader = new InputStreamReader(System.in);
+                                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                                    String msg=bufferedReader.readLine();
+                                    byteBuffer.clear();
+                                    byteBuffer.put(msg.getBytes());
+                                    byteBuffer.flip();
+                                    client.write(byteBuffer);
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+
+                            }
+                        });
+
+
+                    }
+                    //向服务器注册read事件
+                    client.register(selector,SelectionKey.OP_READ);
+
+                }else if(selectionKey.isReadable()){
+                    SocketChannel client= (SocketChannel) selectionKey.channel();
+                    ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+                    int count = client.read(byteBuffer);
+                    if(count>0){
+
+                        System.out.println("server:"+new String(byteBuffer.array()));
+                    }
+                }
+            }
             selectionKeys.clear();
         }
 
