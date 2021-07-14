@@ -7,30 +7,29 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.IntBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Set;
+import java.util.*;
 
 public class NioTest {
     /**
      * buffer读写
      */
     @Test
-    public void test1(){
-        IntBuffer intBuffer=IntBuffer.allocate(10);
-        for(int i=0;i<10;i++){
+    public void test1() {
+        IntBuffer intBuffer = IntBuffer.allocate(10);
+        for (int i = 0; i < 10; i++) {
             intBuffer.put(new SecureRandom().nextInt(20));
         }
         intBuffer.flip();
-        while (intBuffer.hasRemaining()){
+        while (intBuffer.hasRemaining()) {
             System.out.println(intBuffer.get());
         }
         System.out.println(Arrays.toString(intBuffer.array()));
@@ -38,15 +37,16 @@ public class NioTest {
 
     /**
      * 写文件
+     *
      * @throws Exception
      */
     @Test
-    public void test2() throws Exception{
-        FileOutputStream fileOutputStream=new FileOutputStream("test2.txt");
+    public void test2() throws Exception {
+        FileOutputStream fileOutputStream = new FileOutputStream("test2.txt");
         FileChannel channel = fileOutputStream.getChannel();
-        ByteBuffer byteBuffer=ByteBuffer.allocate(20);
-        String data="hello world";
-        for(byte b:data.getBytes(StandardCharsets.UTF_8)){
+        ByteBuffer byteBuffer = ByteBuffer.allocate(20);
+        String data = "hello world";
+        for (byte b : data.getBytes(StandardCharsets.UTF_8)) {
             byteBuffer.put(b);
         }
         //写模式转读模式
@@ -60,13 +60,14 @@ public class NioTest {
 
     /**
      * 读文件
+     *
      * @throws Exception
      */
     @Test
-    public void test3() throws Exception{
-        FileInputStream fileInputStream=new FileInputStream("test2.txt");
+    public void test3() throws Exception {
+        FileInputStream fileInputStream = new FileInputStream("test2.txt");
         FileChannel channel = fileInputStream.getChannel();
-        ByteBuffer byteBuffer=ByteBuffer.allocate(20);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(20);
         //我们的byteBuffer已经存满了，会返回0
         //返回-1是因为客户端主动关闭了channel，注意是主动关闭而不是异常关闭。这时候服务器的与之关联的SelectionKey
         // 会不断的触发SelectionKey.OP_KEY事件，但是当我们去读取数据的时候会一直返回-1(并不会抛出异常)，
@@ -76,14 +77,14 @@ public class NioTest {
         channel.read(byteBuffer);
 
         byteBuffer.flip();
-        while (byteBuffer.hasRemaining()){
-            System.out.println((char)byteBuffer.get());
+        while (byteBuffer.hasRemaining()) {
+            System.out.println((char) byteBuffer.get());
         }
     }
 
     @Test
-    public void test4(){
-        ByteBuffer byteBuffer=ByteBuffer.allocate(10);
+    public void test4() {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(10);
         ByteBuffer readOnlyBuffer = byteBuffer.asReadOnlyBuffer();
         System.out.println(readOnlyBuffer.getClass());
     }
@@ -94,10 +95,9 @@ public class NioTest {
      * 2 直接缓冲对象DirectByteBuffer，持有数组的堆外内存地址Buffer.address，
      * 其数组在JVM堆外，位于操作系统的堆中，操作系统可直接访问
      * （零拷贝，即不需要将JVM的内存拷贝到OS内存）
-     *
      */
     @Test
-    public void test5(){
+    public void test5() {
         ByteBuffer direct = ByteBuffer.allocateDirect(10);
         System.out.println(direct.getClass());
     }
@@ -115,40 +115,41 @@ public class NioTest {
      * @throws Exception
      */
     @Test
-    public void test6() throws Exception{
-        RandomAccessFile randomAccessFile = new RandomAccessFile("test6.txt","rw");
+    public void test6() throws Exception {
+        RandomAccessFile randomAccessFile = new RandomAccessFile("test6.txt", "rw");
         FileChannel fileChannel = randomAccessFile.getChannel();
         MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, 5);
-        while (mappedByteBuffer.hasRemaining()){
-            System.out.println((char)mappedByteBuffer.get());
+        while (mappedByteBuffer.hasRemaining()) {
+            System.out.println((char) mappedByteBuffer.get());
         }
 //        mappedByteBuffer.put(0,(byte) 'a');
 //        mappedByteBuffer.put(3,(byte) 'b');
         randomAccessFile.close();
     }
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
 
     }
 
-    LinkedList<SocketChannel>list=new LinkedList<>();
+    LinkedList<SocketChannel> list = new LinkedList<>();
 
     /**
      * 传统socket服务
+     *
      * @throws Exception
      */
     @Test
-    public void test7() throws Exception{
+    public void test7() throws Exception {
         ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
         InetSocketAddress inetSocketAddress = new InetSocketAddress(8899);
         serverSocketChannel.socket().bind(inetSocketAddress);
 
-        while (true){
+        while (true) {
             //阻塞等待新的连接
             SocketChannel socketChannel = serverSocketChannel.accept();
-            if(list.isEmpty()){
+            if (list.isEmpty()) {
                 list.add(socketChannel);
-            }else {
+            } else {
                 //false 每个连接的通道都是新建的
                 System.out.println(list.getLast().equals(socketChannel));
             }
@@ -165,28 +166,28 @@ public class NioTest {
     }
 
     private void testReadWriteWithClient(SocketChannel socketChannel) throws IOException {
-        long msglen=2+3+4;
-        ByteBuffer bufs[]=new ByteBuffer[3];
-        bufs[0]=ByteBuffer.allocate(2);
-        bufs[1]=ByteBuffer.allocate(3);
-        bufs[2]=ByteBuffer.allocate(4);
-        long read=0;
-        while (read<msglen){
+        long msglen = 2 + 3 + 4;
+        ByteBuffer bufs[] = new ByteBuffer[3];
+        bufs[0] = ByteBuffer.allocate(2);
+        bufs[1] = ByteBuffer.allocate(3);
+        bufs[2] = ByteBuffer.allocate(4);
+        long read = 0;
+        while (read < msglen) {
             //阻塞等等读取客户端发送过来的新数据
-            long r= socketChannel.read(bufs);
-            read+=r;
-            System.out.println("read:"+read);
-            Arrays.asList(bufs).forEach(o-> System.out.println(o.position()+","+o.limit()));
+            long r = socketChannel.read(bufs);
+            read += r;
+            System.out.println("read:" + read);
+            Arrays.asList(bufs).forEach(o -> System.out.println(o.position() + "," + o.limit()));
         }
         for (ByteBuffer buf : bufs) {
             buf.flip();
         }
-        long write=0;
-        while (write<msglen){
+        long write = 0;
+        while (write < msglen) {
             //将bufs的数据发送到客户端
-            long w= socketChannel.write(bufs);
-            write+=w;
-            System.out.println("write:"+write);
+            long w = socketChannel.write(bufs);
+            write += w;
+            System.out.println("write:" + write);
         }
         for (ByteBuffer buf : bufs) {
             buf.clear();
@@ -195,10 +196,11 @@ public class NioTest {
 
     /**
      * nio socket服务
+     *
      * @throws Exception
      */
     @Test
-    public void test8() throws Exception{
+    public void test8() throws Exception {
         int[] ports = new int[5];
         //创建channel 并注册到选择器上
         Selector selector = Selector.open();
@@ -211,46 +213,111 @@ public class NioTest {
             ServerSocket serverSocket = serverSocketChannel.socket();
             serverSocket.bind(inetSocketAddress);
             serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-            System.out.println("监听端口:"+ports[i]);
+            System.out.println("监听端口:" + ports[i]);
         }
 
-        while (true){
+        while (true) {
             // number of keys
             int n = selector.select();
-            System.out.println(" number of keys:"+n);
+            System.out.println(" number of keys:" + n);
             Set<SelectionKey> selectionKeys = selector.selectedKeys();
             Iterator<SelectionKey> iterator = selectionKeys.iterator();
-            while (iterator.hasNext()){
+            while (iterator.hasNext()) {
                 SelectionKey selectionKey = iterator.next();
-                if(selectionKey.isAcceptable()){
+                if (selectionKey.isAcceptable()) {
                     //获取客户端连接
                     ServerSocketChannel serverSocketChannel = (ServerSocketChannel) selectionKey.channel();
                     SocketChannel socketChannel = serverSocketChannel.accept();
                     socketChannel.configureBlocking(false);
                     //注册监听读事件
-                    socketChannel.register(selector,SelectionKey.OP_READ);
+                    socketChannel.register(selector, SelectionKey.OP_READ);
                     //删除该事件
                     iterator.remove();
-                    System.out.println("客户端:"+socketChannel);
-                }else if(selectionKey.isReadable()){
+                    System.out.println("客户端:" + socketChannel);
+                } else if (selectionKey.isReadable()) {
                     //和客户端读写数据
                     SocketChannel channel = (SocketChannel) selectionKey.channel();
-                    int read=0;
-                    while (true){
+                    int read = 0;
+                    while (true) {
                         ByteBuffer byteBuffer = ByteBuffer.allocate(512);
-                        int r=channel.read(byteBuffer);
-                        if(r<=0){
+                        int r = channel.read(byteBuffer);
+                        if (r <= 0) {
                             break;
                         }
-                        read+=r;
+                        read += r;
                         byteBuffer.flip();
                         channel.write(byteBuffer);
                     }
-                    System.out.println("read:"+read+",channel"+channel);
+                    System.out.println("read:" + read + ",channel" + channel);
                     iterator.remove();
 
                 }
             }
+        }
+
+    }
+
+    @Test
+    public void test9() throws Exception {
+        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+        serverSocketChannel.configureBlocking(false);
+        ServerSocket serverSocket = serverSocketChannel.socket();
+        InetSocketAddress address = new InetSocketAddress(8899);
+        serverSocket.bind(address);
+
+        Selector selector = Selector.open();
+        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+        Map<String, SocketChannel> clientMap = new HashMap<>();
+
+        while (true) {
+            //监听通道事件
+            selector.select();
+            Set<SelectionKey> selectionKeys = selector.selectedKeys();
+            for (SelectionKey selectionKey : selectionKeys) {
+                if (selectionKey.isAcceptable()) {
+                    //建立客户端连接 存储客户端
+                    ServerSocketChannel server = (ServerSocketChannel) selectionKey.channel();
+                    SocketChannel client = server.accept();
+                    client.configureBlocking(false);
+                    client.register(selector, SelectionKey.OP_READ);
+                    String uuid = "<" + UUID.randomUUID() + ">";
+                    clientMap.put(uuid, client);
+                    System.out.println("client:" + uuid + "," + client);
+
+                } else if (selectionKey.isReadable()) {
+                    //读取客户端数据 并发送给所有客户端
+                    SocketChannel client = (SocketChannel) selectionKey.channel();
+                    System.out.println("read:" + client);
+                    ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+                    //将数据读入buffer
+                    int count = client.read(byteBuffer);
+                    System.out.println("count:"+count);
+
+                    //从buffer读出数据
+                    byteBuffer.flip();
+                    Charset charset = Charset.forName("utf-8");
+                    String msg=String.valueOf(charset.decode(byteBuffer).array());
+                    System.out.println("msg:"+msg);
+                    String sendKey="";
+                    for (Map.Entry<String, SocketChannel> entry : clientMap.entrySet()) {
+                        if(client==entry.getValue()){
+                            sendKey=entry.getKey();
+                        }
+                    }
+
+                    if(count>0){
+                        byteBuffer.clear();
+                        byteBuffer.put((sendKey+":"+msg).getBytes());
+                        for (SocketChannel socketChannel : clientMap.values()) {
+                            byteBuffer.flip();
+                            socketChannel.write(byteBuffer);
+                        }
+                    }
+
+                }
+            }
+            //清除掉已经处理的事件
+            selectionKeys.clear();
         }
 
     }
