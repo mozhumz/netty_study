@@ -1,5 +1,6 @@
 package com.hyj.nio;
 
+import io.netty.channel.socket.nio.NioSocketChannel;
 import org.junit.Test;
 
 import java.io.*;
@@ -223,9 +224,10 @@ public class NioTest {
                 if (selectionKey.isAcceptable()) {
                     //获取客户端连接
                     ServerSocketChannel serverSocketChannel = (ServerSocketChannel) selectionKey.channel();
+                    //客户端channel
                     SocketChannel socketChannel = serverSocketChannel.accept();
                     socketChannel.configureBlocking(false);
-                    //注册监听读事件
+                    //在客户端channel注册监听读事件
                     socketChannel.register(selector, SelectionKey.OP_READ);
                     //删除该事件
                     iterator.remove();
